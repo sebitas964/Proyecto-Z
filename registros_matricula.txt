@@ -1,0 +1,11 @@
+========================================
+    REPORTE DE REGISTROS DE MATRÍCULA   
+========================================
+
+Registro 1
+Código    : MAT-25761
+Estudiante: Steven simeon
+DNI       : 12345678
+Teléfono  : 123456789
+Grado     : Secundaria
+----------------------------------------
