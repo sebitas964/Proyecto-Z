@@ -1,200 +1,98 @@
+import almacenamiento
+import busqueda
+import codigos
+import ingreso
 
-# =============================================================================
-# PROYECTO Z - MENU PRINCIPAL E INTEGRACION
-# Integrante: Sebastian
-# =============================================================================
-
-import validaciones
-
-# Lista temporal para guardar los alumnos durante la ejecucion
-alumnos = []
-
-
-# -----------------------------------------------------------------------------
-# MENU PRINCIPAL
-# -----------------------------------------------------------------------------
 
 def mostrar_menu():
-    print("\n" + "=" * 40)
-    print("       SISTEMA DE GESTION MAT-Z")
-    print("=" * 40)
-    print("1. Registrar nuevo alumno")
-    print("2. Buscar alumno por DNI")
-    print("3. Generar reportes / Listados")
-    print("4. Otras opciones del sistema")
-    print("5. Salir del programa")
-    print("=" * 40)
+    print("\nMESA DE PARTES DIGITAL - MAT-Z")
+    print("1. Registrar solicitud")
+    print("2. Buscar expediente por código")
+    print("3. Mostrar expedientes ordenados por código")
+    print("4. Mostrar todos los expedientes")
+    print("5. Salir")
 
 
-# -----------------------------------------------------------------------------
-# FUNCION AUXILIAR PARA SOLICITAR DATOS OBLIGATORIOS
-# -----------------------------------------------------------------------------
+def registrar_solicitud():
+    print("\nREGISTRO DE SOLICITUD")
 
-def pedir_dato(mensaje, funcion_validacion):
-    while True:
-        valor = input(mensaje).strip()
+    registro = ingreso.pedir_datos()
 
-        if not validaciones.campo_obligatorio(valor):
-            print("Error: este campo es obligatorio.")
-            continue
-
-        if funcion_validacion(valor):
-            return valor
-
-        print("Dato no valido. Intente nuevamente.")
-
-
-# -----------------------------------------------------------------------------
-# REGISTRO DE ALUMNOS
-# -----------------------------------------------------------------------------
-
-def registrar_alumno():
-    print("\n--- REGISTRO DE NUEVO ALUMNO ---")
-
-    nombre = pedir_dato(
-        "Ingrese nombres y apellidos: ",
-        validaciones.validar_nombre
+    registro["codigo"] = codigos.generar_codigo(
+        almacenamiento.leer_registros()
     )
 
-    dni = pedir_dato(
-        "Ingrese DNI (8 digitos): ",
-        validaciones.validar_dni
-    )
-
-    telefono = pedir_dato(
-        "Ingrese telefono (9 digitos, empieza con 9): ",
-        validaciones.validar_telefono
-    )
-
-    while True:
-        nivel = input("Nivel (Primaria/Secundaria): ").strip()
-        nivel_normalizado = validaciones.normalizar_nivel(nivel)
-
-        if nivel_normalizado is not None:
-            nivel = nivel_normalizado
-            break
-
-        print("Error: escriba Primaria o Secundaria.")
-
-    while True:
-        grado = input("Grado: ").strip()
-
-        if validaciones.validar_grado(grado, nivel):
-            grado = int(grado)
-            break
-
-        print("Grado no valido para el nivel seleccionado.")
-
-    seccion = pedir_dato(
-        "Seccion (A, B o C): ",
-        validaciones.validar_seccion
-    ).upper()
-
-    alumno = {
-        "nombre": nombre.strip(),
-        "dni": dni,
-        "telefono": telefono,
-        "nivel": nivel,
-        "grado": grado,
-        "seccion": seccion
-    }
-
-    # Evitar registrar dos veces el mismo DNI en esta ejecucion
-    for existente in alumnos:
-        if existente["dni"] == dni:
-            print("Error: ya existe un alumno con ese DNI.")
-            return
-
-    alumnos.append(alumno)
-
-    print("\nAlumno registrado correctamente.")
-    print(f"Nombre: {alumno['nombre']}")
-    print(f"DNI: {alumno['dni']}")
-    print(f"Nivel: {alumno['nivel']}")
-    print(f"Grado y seccion: {alumno['grado']} - {alumno['seccion']}")
+    if almacenamiento.guardar_registro(registro):
+        print("\nSolicitud registrada correctamente.")
+        busqueda.mostrar_resultado(registro)
+    else:
+        print("\nNo se pudo registrar la solicitud.")
 
 
-# -----------------------------------------------------------------------------
-# BUSQUEDA DE ALUMNOS
-# -----------------------------------------------------------------------------
-
-def buscar_alumno():
-    print("\n--- BUSQUEDA DE ALUMNO ---")
-    dni = input("Ingrese el DNI que desea buscar: ").strip()
-
-    if not validaciones.validar_dni(dni):
-        print("Error: el DNI debe tener exactamente 8 digitos.")
+def mostrar_solicitudes(registros):
+    if not registros:
+        print("\nNo hay expedientes registrados.")
         return
 
-    for alumno in alumnos:
-        if alumno["dni"] == dni:
-            print("\nAlumno encontrado:")
-            print(f"Nombre: {alumno['nombre']}")
-            print(f"DNI: {alumno['dni']}")
-            print(f"Telefono: {alumno['telefono']}")
-            print(f"Nivel: {alumno['nivel']}")
-            print(f"Grado: {alumno['grado']}")
-            print(f"Seccion: {alumno['seccion']}")
-            return
+    print(
+        f"\n{'CÓDIGO':<11}{'APELLIDOS':<22}{'NOMBRES':<22}"
+        f"{'DNI':<10}{'TELÉFONO':<12}{'DOCUMENTO':<13}{'GRADO'}"
+    )
 
-    print("No se encontro un alumno con ese DNI.")
-
-
-# -----------------------------------------------------------------------------
-# LISTADO DE ALUMNOS
-# -----------------------------------------------------------------------------
-
-def mostrar_alumnos():
-    print("\n--- LISTADO DE ALUMNOS ---")
-
-    if not alumnos:
-        print("Todavia no hay alumnos registrados.")
-        return
-
-    for numero, alumno in enumerate(alumnos, start=1):
-        print(
-            f"{numero}. {alumno['nombre']} | DNI: {alumno['dni']} | "
-            f"{alumno['nivel']} | {alumno['grado']} - {alumno['seccion']}"
+    for registro in registros:
+        grado = (
+            f"{registro['nivel']} "
+            f"{registro['grado']}-{registro['seccion']}"
         )
 
+        print(
+            f"{registro['codigo']:<11}"
+            f"{registro['apellidos']:<22}"
+            f"{registro['nombres']:<22}"
+            f"{registro['dni']:<10}"
+            f"{registro['telefono']:<12}"
+            f"{registro['tipo_documento']:<13}"
+            f"{grado}"
+        )
 
-# -----------------------------------------------------------------------------
-# OPCIONES ADICIONALES
-# -----------------------------------------------------------------------------
-
-def otras_opciones():
-    print("\n--- OTRAS OPCIONES ---")
-    print("Este modulo esta pendiente de integracion.")
-
-
-# -----------------------------------------------------------------------------
-# EJECUCION DEL PROGRAMA
-# -----------------------------------------------------------------------------
 
 def main():
     while True:
         mostrar_menu()
-        opcion = input("Seleccione una opcion (1-5): ").strip()
+
+        opcion = input("\nSeleccione una opción (1-5): ").strip()
 
         if opcion == "1":
-            registrar_alumno()
+            registrar_solicitud()
 
         elif opcion == "2":
-            buscar_alumno()
+            codigo = input(
+                "\nCódigo del expediente (ejemplo MAT-00001): "
+            ).strip()
+
+            registro = busqueda.buscar_por_codigo(
+                almacenamiento.leer_registros(),
+                codigo
+            )
+
+            print()
+            busqueda.mostrar_resultado(registro)
 
         elif opcion == "3":
-            mostrar_alumnos()
+            registros = almacenamiento.leer_registros()
+            registros_ordenados = codigos.ordenar_registros(registros)
+            mostrar_solicitudes(registros_ordenados)
 
         elif opcion == "4":
-            otras_opciones()
+            registros = almacenamiento.leer_registros()
+            mostrar_solicitudes(registros)
 
         elif opcion == "5":
-            print("\nGracias por usar el Sistema Proyecto Z.")
-            print("Hasta pronto.")
+            print("\nHasta pronto.")
             break
 
         else:
-            print("Opcion no valida. Ingrese un numero del 1 al 5.")
+            print("\nOpción no válida. Ingrese un número del 1 al 5.")
 
 
 if __name__ == "__main__":
